@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EC Wegscheid Reservierungssystem V1.6</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase / Cloud Firestore -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+    <style>
+        .vertical-text {
+            writing-mode: vertical-lr;
+            transform: rotate(180deg);
+            text-align: center;
+            white-space: nowrap;
+        }
+        html, body { min-height: 100%; }
+        body { overflow-x: hidden !important; overflow-y: auto !important; }
+    </style>
+</head>
+<body class="bg-gray-900 font-sans text-xs text-gray-100 min-h-screen flex flex-col">
+
+    <header class="bg-zinc-900 border-b border-red-800 text-white shadow-sm shrink-0">
+        <div class="container mx-auto px-3 py-1.5 grid grid-cols-3 items-center">
+            <div class="flex items-center gap-2">
+                <span class="bg-red-700 text-white px-1.5 py-0.5 rounded text-[10px]">ECW</span>
+            </div>
+            <h1 class="text-sm font-bold tracking-wide text-center">
+                EC Wegscheid Reservierungssystem
+            </h1>
+            <div class="flex items-center justify-end space-x-3">
+                <span id="userStatusBadge" class="bg-zinc-800 border border-zinc-700 text-zinc-200 px-2 py-0.5 rounded text-xs">Angemeldet: Fesl Thomas</span>
+                <button type="button" onclick="openLoginModal()" class="bg-red-700 hover:bg-red-800 text-white px-2.5 py-1 rounded font-semibold transition cursor-pointer text-xs">Login / Admin</button>
+            </div>
+        </div>
+    </header>
+
+    <nav class="bg-zinc-900 border-b border-zinc-800 shrink-0">
+        <div class="container mx-auto px-3 flex justify-between items-center text-xs py-1">
+            <div class="flex space-x-2 items-center">
+                <button type="button" onclick="switchTab('booking')" id="navBooking" class="py-1 border-b-2 border-red-600 font-semibold text-white cursor-pointer">📅 Reservierung</button>
+                <button type="button" onclick="switchTab('members')" id="navMembers" class="py-1 border-b-2 border-transparent text-zinc-400 hover:text-white cursor-pointer">👥 Mitglieder (<span id="memberCount">2</span>)</button>
+                <button type="button" onclick="switchTab('admin')" id="navAdmin" class="py-1 border-b-2 border-transparent text-zinc-400 hover:text-white cursor-pointer">⚙️ Admin</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-[99%] mx-auto px-1 py-1 space-y-1 flex-grow flex flex-col w-full">
+        
+        <div id="tabBooking" class="space-y-1 flex flex-col flex-grow">
+            <div class="bg-zinc-800 p-2 rounded border border-zinc-700 flex justify-between items-center shrink-0">
+                <div class="flex items-center space-x-2">
+                    <button type="button" onclick="alert('Bahn buchen geklickt')" class="bg-red-700 hover:bg-red-800 text-white px-3 py-1 rounded font-semibold cursor-pointer text-xs">+ Bahn buchen</button>
+                </div>
+            </div>
+            <div class="bg-zinc-800 p-2 rounded border border-zinc-700 flex flex-col flex-grow">
+                <div id="savedBookingsContainer" class="space-y-2 text-zinc-300">Hier erscheinen deine Reservierungen.</div>
+            </div>
+        </div>
+
+        <div id="tabMembers" class="space-y-2 hidden overflow-y-auto flex-grow">
+            <div class="bg-zinc-800 p-3 rounded border border-zinc-700 space-y-2">
+                <h3 class="text-xs font-bold text-zinc-200">Mitgliederverzeichnis</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-zinc-900 border-b border-zinc-700 text-zinc-400 text-[11px]">
+                                <th class="p-1.5">Name</th>
+                                <th class="p-1.5">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="membersTableBody" class="divide-y divide-zinc-700 text-zinc-300"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="tabAdmin" class="space-y-2 hidden overflow-y-auto flex-grow">
+            <div class="bg-zinc-800 p-3 rounded border border-zinc-700 space-y-2.5">
+                <h3 class="text-xs font-bold text-zinc-200">⚙️ Admin-Bereich</h3>
+                <p class="text-zinc-400">Verwaltungseinstellungen aktiv.</p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modals -->
+    <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-70 hidden flex justify-center items-center z-50 p-2">
+        <div class="bg-zinc-800 p-3 rounded-lg shadow-lg w-72 space-y-2.5 border border-zinc-700">
+            <h3 class="text-xs font-bold text-zinc-100">Anmeldung</h3>
+            <input type="password" id="loginPasswordInput" placeholder="Passwort" class="w-full border border-zinc-700 rounded p-1 bg-zinc-900 text-white">
+            <div class="flex space-x-2">
+                <button type="button" onclick="verifyLogin()" class="w-full bg-red-700 text-white py-1.5 rounded cursor-pointer">Einloggen</button>
+                <button type="button" onclick="closeLoginModal()" class="w-full bg-zinc-700 text-white py-1.5 rounded cursor-pointer">Abbrechen</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let membersList = [
+            { name: "Fesl Thomas", active: true },
+            { name: "Allmannsberger Adi", active: true }
+        ];
+
+        function switchTab(tabId) {
+            document.getElementById('tabBooking').classList.add('hidden');
+            document.getElementById('tabMembers').classList.add('hidden');
+            document.getElementById('tabAdmin').classList.add('hidden');
+            
+            document.getElementById('navBooking').className = "py-1 border-b-2 border-transparent text-zinc-400 cursor-pointer";
+            document.getElementById('navMembers').className = "py-1 border-b-2 border-transparent text-zinc-400 cursor-pointer";
+            document.getElementById('navAdmin').className = "py-1 border-b-2 border-transparent text-zinc-400 cursor-pointer";
+
+            if(tabId === 'booking') {
+                document.getElementById('tabBooking').classList.remove('hidden');
+                document.getElementById('navBooking').className = "py-1 border-b-2 border-red-600 font-semibold text-white cursor-pointer";
+            } else if(tabId === 'members') {
+                document.getElementById('tabMembers').classList.remove('hidden');
+                document.getElementById('navMembers').className = "py-1 border-b-2 border-red-600 font-semibold text-white cursor-pointer";
+                renderMembersTable();
+            } else if(tabId === 'admin') {
+                document.getElementById('tabAdmin').classList.remove('hidden');
+                document.getElementById('navAdmin').className = "py-1 border-b-2 border-red-600 font-semibold text-white cursor-pointer";
+            }
+        }
+
+        function renderMembersTable() {
+            const tbody = document.getElementById('membersTableBody');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            membersList.forEach(m => {
+                tbody.innerHTML += `<tr>
+                    <td class="p-1.5">${m.name}</td>
+                    <td class="p-1.5">${m.active ? 'Aktiv' : 'Inaktiv'}</td>
+                </tr>`;
+            });
+        }
+
+        function openLoginModal() {
+            document.getElementById('loginModal').classList.remove('hidden');
+        }
+
+        function closeLoginModal() {
+            document.getElementById('loginModal').classList.add('hidden');
+        }
+
+        function verifyLogin() {
+            alert("Login erfolgreich!");
+            closeLoginModal();
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMembersTable();
+        });
+    </script>
+</body>
+</html>
