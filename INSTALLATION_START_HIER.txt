@@ -1,0 +1,46 @@
+EC WEGSCHEID – RESERVIERUNGSSYSTEM KOMPLETT
+===========================================
+
+INHALT
+- index.html: vollständiges Reservierungsprogramm
+- manifest.webmanifest, Icons, Bilder und weitere bestehende Dateien
+- FIREBASE_REGELN_BISHER_OFFEN.rules: bisherige Regeln, NUR ZUR DOKUMENTATION
+- FIREBASE_REGELN_HINWEISE.txt: Sicherheitswarnung und spätere Umstellung
+- ANLEITUNG_INFORMATIONSSYSTEM_RECHTE.txt: Beschreibung der Änderung
+
+WAS WURDE GEÄNDERT?
+Der bestehende Benutzer „Informationssystem“ kann fremde Reservierungen
+ändern oder stornieren. Seine bisherigen Anmeldedaten bleiben erhalten.
+Mitglieder- und Adminrechte sowie die übrigen Funktionen bleiben bestehen.
+Beim Einbetten in die Vereinsverwaltung wird die doppelte Zurück-Navigation
+ausgeblendet.
+
+VOR DEM HOCHLADEN
+1. Die aktuelle GitHub-Version und die Firestore-Daten sichern.
+2. ZIP entpacken. Die Dateien liegen direkt im Hauptordner der ZIP.
+3. Die Webdateien in das Repository „Reservierungssystem“ hochladen.
+   Die Textdateien mit Firebase-Regeln sind nur Dokumentation und
+   können außerhalb des öffentlichen GitHub-Repositories aufbewahrt werden.
+4. GitHub Pages aktualisieren lassen, Browser neu laden (Strg+F5).
+5. Im Reservierungssystem selbst als „Informationssystem“ mit dem
+   BESTEHENDEN Kennwort anmelden. Die Anmeldung in der Vereinsverwaltung
+   wird nicht automatisch übernommen.
+6. Fremde Bahnreservierung stornieren und ändern; fremde Vereinsheim-
+   reservierung stornieren; normale Mitgliedsanmeldung prüfen.
+
+FIREBASE-REGELN
+Die bisherigen Regeln wurden nicht geändert und brauchen für diese
+Programmänderung nicht erneut veröffentlicht zu werden. Sie sind
+allerdings unsicher: ALLE können ohne Firebase-Anmeldung lesen/schreiben.
+Bitte FIREBASE_REGELN_HINWEISE.txt beachten.
+
+BEKANNTE EINSCHRÄNKUNG
+Vereinsheim-Reservierungen lassen sich derzeit zuverlässig stornieren
+und neu anlegen. Der vorhandene Ändern-Dialog erzeugt noch eine neue
+Buchung, anstatt die bestehende direkt zu bearbeiten.
+
+HINWEIS ZU DATEN
+In diesem Paket sind KEINE persönlichen Mitgliederdaten oder Passwörter
+aus der Live-Datenbank enthalten. Diese bleiben unverändert in Firebase.
+Ein echtes Datenbank-Backup kann nur aus den tatsächlichen Daten erstellt
+werden; die HTML-Datei ist kein Datenbank-Backup.

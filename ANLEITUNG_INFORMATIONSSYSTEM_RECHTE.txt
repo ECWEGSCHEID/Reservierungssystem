@@ -1,0 +1,35 @@
+EC Wegscheid Reservierungssystem – Benutzer Informationssystem
+
+AENDERUNG:
+- Bestehender Benutzer "Informationssystem" (als Mitglied im Reservierungssystem
+  angemeldet) kann alle vorhandenen Bahn- und Vereinsheimreservierungen
+  stornieren und den Bearbeitungsdialog oeffnen, ohne PIN.
+- Andere Mitglieder behalten ihre bisherigen Rechte.
+- Admin-, Mitglieder- und Serienreservierungsrechte unveraendert.
+- Beim Stornieren bleibt cancelledBy in der Historie erhalten.
+- Beim Aendern einer Bahnreservierung werden lastEditedBy und lastEditedAt
+  im Reservierungsdatensatz ergaenzt; bookedBy bleibt erhalten.
+- Der vorherige Fix fuer doppelte Zurueck-Buttons bleibt enthalten.
+
+INSTALLATION:
+1. VORHER die bestehenden Reservierungsdaten in Firebase sichern.
+2. Im GitHub-Repository "Reservierungssystem" die index.html durch die
+   index.html aus dieser ZIP ersetzen; alle anderen Dateien bleiben identisch.
+3. GitHub Pages aktualisieren lassen, im Browser mit Strg+F5 neu laden.
+4. Im Reservierungssystem als "Informationssystem" anmelden (mit dem
+   BISHERIGEN Passwort). Die Anmeldung in der Vereinsverwaltung allein
+   meldet NICHT automatisch im Reservierungssystem an.
+5. Reservierung von Smartphone-Mitglied am Whiteboard stornieren testen;
+   eine weitere Reservierung im Whiteboard anlegen und am Smartphone
+   als deren Ersteller bzw. als fremdes Mitglied testen.
+
+WICHTIG: Die mitgeteilten Firestore-Regeln (allow read, write: if true)
+bleiben hier unveraendert und sind OFFEN. Die Aenderung ist eine
+Bedienungs-/App-Berechtigung, keine sichere serverseitige Zugriffskontrolle.
+Fuer einen wirksamen Datenbankschutz ist eine spaetere Umstellung auf
+serverseitig pruefbare Authentifizierung und restriktive Regeln noetig.
+
+HINWEIS: Die bestehende Vereinsheim-Bearbeitungsfunktion oeffnet einen
+Buchungsdialog, der derzeit eine NEUE Buchung erzeugt, statt den alten
+Datensatz zu aendern. Fuer Vereinsheim ist daher Stornieren und neu
+Reservieren der verlaessliche Ablauf, bis die Bearbeitungslogik korrigiert ist.

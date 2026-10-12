@@ -1,0 +1,23 @@
+FIREBASE – WICHTIGE SICHERHEITSHINWEISE
+
+Firebase-Projekt: reservierungssystem-wegscheid
+
+Die beigefügte Datei FIREBASE_REGELN_BISHER_OFFEN.rules entspricht den vom
+Benutzer mitgeteilten derzeitigen Firestore-Regeln. Sie erlaubt JEDEM
+Lese- und Schreibzugriff auf die gesamte Datenbank, auch ohne Anmeldung.
+Dies ist KEINE sichere Konfiguration und wird NICHT empfohlen.
+
+Die Reservierungsanmeldung erfolgt in der Web-App, nicht mit Firebase Auth.
+Daher können Firestore-Regeln die Mitgliedernamen und Passwörter nicht
+vertrauenswürdig prüfen. Insbesondere lässt sich das Sonderrecht des
+Benutzers „Informationssystem“ mit diesen Regeln NICHT absichern.
+
+Die beigefügte HTML-Version ändert nur die Rechteprüfung innerhalb der App.
+Die bisherigen Firebase-Regeln müssen NICHT neu eingefügt werden, wenn sie
+bereits unverändert aktiv sind. Keine Regeln blind überschreiben.
+
+Eine sichere künftige Lösung erfordert eine serverseitig verifizierbare
+Anmeldung (z.B. Firebase Authentication), eine Migration der Anmeldung
+unter Erhalt der bestehenden Mitgliederdaten und danach restriktive Regeln.
+Das ist in diesem Paket bewusst NICHT umgesetzt, um keine bestehenden
+Kennwörter oder Logins zu verändern.

@@ -162,6 +162,12 @@
     <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png">
     <link rel="manifest" href="manifest.webmanifest">
 
+<!-- EC Wegscheid: Versteckt den eigenen Zurueck-Button nur bei Einbettung. -->
+<style>html.ecw-in-iframe #exitToStartButton{display:none!important}</style>
+<script>
+try{if(window.self!==window.top){document.documentElement.classList.add('ecw-in-iframe')}}
+catch(e){document.documentElement.classList.add('ecw-in-iframe')}
+</script>
 </head>
 <body class="bg-gray-900 font-sans text-xs text-gray-100 h-screen flex flex-col overflow-hidden">
 
@@ -962,7 +968,7 @@
         }
 
         function checkTimeAvailability() {
-            if(currentUser.role === 'admin' && editingBookingId !== null) {
+            if((currentUser.role === 'admin' || isInformationssystemUser()) && editingBookingId !== null) {
                 document.getElementById('availabilityWarning').classList.add('hidden');
                 document.getElementById('modalSubmitBtn').disabled = false;
                 document.getElementById('modalSubmitBtn').classList.remove('opacity-50', 'cursor-not-allowed');
@@ -1082,7 +1088,7 @@
                         let isCurrentLive = (b.date === todayStr && b.timeFrom <= currentTime && b.timeTo > currentTime);
                         let liveBadge = isCurrentLive ? `<span class="bg-green-950 text-green-300 border border-green-700 px-2 py-0.5 rounded text-[10px] font-bold animate-pulse">🔴 AKTUELL LÄUFT</span>` : '';
 
-                        let canManageBooking = currentUser.role === 'admin' || b.bookedBy === currentUser.name;
+                        let canManageBooking = canManageReservation(b);
                         let bookingActionHint = canManageBooking ? `<p class="text-[10px] text-zinc-500 pt-1">👆 Tippen für Ändern / Stornieren</p>` : '';
 
                         groupContainer.innerHTML += `
@@ -1172,7 +1178,7 @@
                                 let guestStr = activeBooking.guestTeam && activeBooking.guestTeam.length > 0 ? ` | Gegner: ${activeBooking.guestTeam.join(', ')}` : '';
                                 let teamsText = homeStr ? `Spieler: ${homeStr}${guestStr}` : 'Keine Spieler eingetragen';
                                 let tooltipText = `Modus: ${activeBooking.mode || '-'}\nGebucht von: ${activeBooking.bookedBy}\n${teamsText}`;
-                                let canManageBooking = currentUser.role === 'admin' || activeBooking.bookedBy === currentUser.name;
+                                let canManageBooking = canManageReservation(activeBooking);
                                 let bookingClick = `onclick="showBookingActions(${activeBooking.id})"`;
                                 let cursorStyle = canManageBooking ? 'cursor-pointer hover:opacity-80 active:opacity-60' : 'cursor-pointer hover:opacity-90 active:opacity-70';
                                 let cellColorBg = res === "Vereinsheim" ? "bg-blue-700 text-white" : "bg-red-900/70 text-red-200";
@@ -1349,12 +1355,24 @@
             openBookingModalAtTime(res, dateStr, start, end);
         }
 
+        // Sonderrecht nur für den bereits angemeldeten Reservierungssystem-Benutzer
+        // „Informationssystem“; alle anderen Mitgliederrechte bleiben unverändert.
+        function isInformationssystemUser() {
+            return currentUser && currentUser.role === 'member' &&
+                String(currentUser.name || '').trim().toLocaleLowerCase('de-DE') === 'informationssystem';
+        }
+
+        function canManageReservation(booking) {
+            return Boolean(booking) && (currentUser.role === 'admin' ||
+                isInformationssystemUser() || booking.bookedBy === currentUser.name);
+        }
+
         function showBookingActions(id) {
             resetSlotSelection();
             const b = bookingsList.find(item => item.id === id);
             if(!b) return;
 
-            const canManage = currentUser.role === 'admin' || b.bookedBy === currentUser.name;
+            const canManage = canManageReservation(b);
             const info = document.getElementById('bookingActionInfo');
             const buttons = document.getElementById('bookingActionButtons');
             if(!info || !buttons) return;
@@ -1375,7 +1393,7 @@
                     <button type="button" onclick="closeBookingActionModal(); editBooking(${id})" class="bg-blue-700 hover:bg-blue-800 text-white py-2 rounded font-semibold">✏️ Reservierung ändern</button>
                     <button type="button" onclick="closeBookingActionModal(); deleteBooking(${id})" class="bg-red-700 hover:bg-red-800 text-white py-2 rounded font-semibold">🗑️ Reservierung stornieren</button>`;
             } else {
-                buttons.innerHTML = `<div class="col-span-full text-center text-zinc-400 bg-zinc-900 rounded p-2">Nur ${b.bookedBy} oder der Administrator darf diese Reservierung ändern oder stornieren.</div>`;
+                buttons.innerHTML = `<div class="col-span-full text-center text-zinc-400 bg-zinc-900 rounded p-2">Nur die buchende Person, Informationssystem oder der Administrator darf diese Reservierung ändern oder stornieren.</div>`;
             }
             document.getElementById('bookingActionModal').classList.remove('hidden');
         }
@@ -1388,8 +1406,8 @@
         function editBooking(id) {
             let b = bookingsList.find(item => item.id === id);
             if(!b) return;
-            if(currentUser.role !== 'admin' && b.bookedBy !== currentUser.name) {
-                alert("Nur der Spieler, der die Reservierung durchgeführt hat, oder der Administrator darf sie ändern.");
+            if(!canManageReservation(b)) {
+                alert("Nur die buchende Person, Informationssystem oder der Administrator darf diese Reservierung ändern.");
                 return;
             }
             if(!b) return;
@@ -1404,7 +1422,7 @@
             }
 
             editingBookingId = b.id;
-            document.getElementById('modalTitleHeading').innerText = "✏️ Admin: Reservierung ändern / überschreiben";
+            document.getElementById('modalTitleHeading').innerText = "✏️ Reservierung ändern";
             document.getElementById('modalSelectedResource').value = b.resource;
             document.getElementById('modalBookDate').value = b.date;
             document.getElementById('modalTimeFrom').value = b.timeFrom;
@@ -1427,8 +1445,8 @@
         async function deleteBooking(id) {
             let b = bookingsList.find(item => item.id === id);
             if(!b) return;
-            if(currentUser.role !== 'admin' && b.bookedBy !== currentUser.name) {
-                alert("Nur der Spieler, der die Reservierung durchgeführt hat, oder der Administrator darf sie stornieren.");
+            if(!canManageReservation(b)) {
+                alert("Nur die buchende Person, Informationssystem oder der Administrator darf diese Reservierung stornieren.");
                 return;
             }
             if(confirm("Möchten Sie diese Reservierung wirklich stornieren?")) {
@@ -2291,9 +2309,15 @@
 
             if(editingBookingId !== null) {
                 let b = bookingsList.find(item => item.id === editingBookingId);
+                if(!canManageReservation(b)) {
+                    alert("Keine Berechtigung zum Ändern dieser Reservierung.");
+                    return;
+                }
                 if(b) {
                     b.resource = resource; b.date = date; b.timeFrom = timeFrom; b.timeTo = timeTo;
                     b.mode = template; b.homeTeam = homeTeam; b.guestTeam = guestTeam;
+                    b.lastEditedBy = currentUser.name;
+                    b.lastEditedAt = new Date().toISOString();
                 }
                 alert("Reservierung erfolgreich aktualisiert!");
                 editingBookingId = null;

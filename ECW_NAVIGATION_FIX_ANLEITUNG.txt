@@ -1,0 +1,7 @@
+EC Wegscheid Reservierungssystem - Navigationsanpassung
+
+Der Button Zurueck zur Startseite wird nur in einer eingebetteten Ansicht ausgeblendet. Beim direkten Oeffnen bleibt er erhalten. Buchungen und Firebase bleiben unveraendert.
+
+Installation: Die Dateien aus dieser ZIP ins GitHub-Repository Reservierungssystem hochladen und index.html ersetzen. Danach Strg+F5.
+
+Test: Innerhalb der Vereinsverwaltung nur deren Zurueck-Button; beim direkten Oeffnen den eigenen Button.
