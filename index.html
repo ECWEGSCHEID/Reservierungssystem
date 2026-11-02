@@ -162,12 +162,27 @@
     <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png">
     <link rel="manifest" href="manifest.webmanifest">
 
-<!-- EC Wegscheid: Versteckt den eigenen Zurueck-Button nur bei Einbettung. -->
-<style>html.ecw-in-iframe #exitToStartButton{display:block!important}</style>
-<script>
-try{if(window.self!==window.top){document.documentElement.classList.add('ecw-in-iframe')}}
-catch(e){document.documentElement.classList.add('ecw-in-iframe')}
-</script>
+<!-- Extra back button only for the management iframe; never duplicate the host navigation. -->
+<style id="ecwReservationReturnVisibility">
+#exitToStartButton{display:none!important}
+html.ecw-reservation-admin-entry #exitToStartButton{display:block!important}
+</style><script>(function(){
+ const root=document.documentElement;
+ root.classList.remove('ecw-reservation-admin-entry');
+ if(window.self===window.top)return;
+ root.classList.add('ecw-in-iframe');
+ try{
+  const host=window.parent;
+  // The external viewer already supplies its own back button, including Whiteboard.
+  const external=host.document.getElementById('externalFrame');
+  if(external&&external.contentWindow===window)return;
+  const admin=host.document.getElementById('ecwReservationAdminFrame');
+  if(!admin||admin.contentWindow!==window)return;
+  if(typeof host.isWhiteboardUser==='function'&&host.isWhiteboardUser())return;
+  if(typeof host.isPublicWhiteboardMode==='function'&&host.isPublicWhiteboardMode())return;
+  root.classList.add('ecw-reservation-admin-entry');
+ }catch(e){/* Standalone/foreign hosts do not need an additional back button. */}
+})();</script>
 <style id="ecwReservationPhoneStyles">
 /* Smartphone: calendar must not collapse inside nested flex containers. */
 @media(max-width:768px){
