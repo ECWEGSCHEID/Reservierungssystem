@@ -163,7 +163,7 @@
     <link rel="manifest" href="manifest.webmanifest">
 
 <!-- EC Wegscheid: Versteckt den eigenen Zurueck-Button nur bei Einbettung. -->
-<style>html.ecw-in-iframe #exitToStartButton{display:none!important}</style>
+<style>html.ecw-in-iframe #exitToStartButton{display:block!important}</style>
 <script>
 try{if(window.self!==window.top){document.documentElement.classList.add('ecw-in-iframe')}}
 catch(e){document.documentElement.classList.add('ecw-in-iframe')}
@@ -2347,39 +2347,29 @@ catch(e){document.documentElement.classList.add('ecw-in-iframe')}
         // Beendet die Web-App bestmöglich und gibt den Fokus an das zuvor geöffnete
         // Fenster zurück. Browser erlauben window.close() nur in bestimmten Fällen.
         function exitToStartPage() {
-            // Erst versuchen, dieses Browserfenster wirklich zu schließen.
-            // Manche Browser (insbesondere auf Tablets/Whiteboards) erlauben
-            // window.close() nur bei Fenstern, die per JavaScript geöffnet wurden.
-            const tryClose = () => {
-                try { window.close(); } catch (e) {}
+            const home = 'https://ecwegscheid.github.io/Vereinsverwaltung-Aktuell/index.html#startseite';
+            if (window.self !== window.top) {
                 try {
-                    window.open('', '_self');
-                    window.close();
-                } catch (e) {}
-            };
-
-            tryClose();
-
-            // Kurz warten, ob der Browser das Fenster tatsächlich geschlossen hat.
-            setTimeout(function () {
-                if (window.closed) return;
-
-                // Wenn dieses Fenster einen echten Browser-Verlauf hat, zurück.
-                // Dadurch wird die Reservierungsseite nicht einfach "versteckt".
-                try {
-                    if (window.history.length > 1) {
-                        window.history.back();
+                    const host = window.parent;
+                    const external = host.document.getElementById('externalFrame');
+                    const admin = host.document.getElementById('ecwReservationAdminFrame');
+                    if (external && external.contentWindow === window && typeof host.closeExternalPage === 'function') {
+                        host.closeExternalPage();
                         return;
                     }
-                } catch (e) {}
-
-                // Wenn auch das nicht möglich ist, bleibt die Seite offen.
-                // Wir zeigen eine klare Meldung statt den Button verschwinden zu lassen.
-                const msg = document.getElementById('exitMessage');
-                if (msg) {
-                    msg.style.display = 'flex';
+                    if (admin && admin.contentWindow === window && typeof host.renderAdminMenuLanding === 'function') {
+                        host.renderAdminMenuLanding();
+                        return;
+                    }
+                } catch (e) {
+                    // The host's existing return button remains usable across origins.
                 }
-            }, 350);
+                const msg = document.getElementById('exitMessage');
+                if (msg) msg.style.display = 'flex';
+                return;
+            }
+            // Use a defined destination; no logout, window closing or browser-history guess.
+            window.location.assign(home);
         }
 
         function closeExitMessage() {
@@ -2392,10 +2382,9 @@ catch(e){document.documentElement.classList.add('ecw-in-iframe')}
     <div id="exitMessage" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:100000;align-items:center;justify-content:center;padding:24px;">
         <div style="max-width:520px;width:100%;background:#18181b;color:#fff;border:2px solid #b91c1c;border-radius:16px;padding:24px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.7);">
             <div style="font-size:42px;margin-bottom:10px;">⚠️</div>
-            <div style="font-size:22px;font-weight:800;margin-bottom:10px;">Browser blockiert das Schließen</div>
+            <div style="font-size:22px;font-weight:800;margin-bottom:10px;">Zurück zur Vereinsverwaltung</div>
             <div style="font-size:16px;line-height:1.5;margin-bottom:20px;">
-                Dieses Fenster wurde nicht von der Webseite geöffnet. Deshalb darf die Webseite es auf dem Samsung-Whiteboard nicht selbst schließen.
-                Bitte das Browserfenster mit der Zurück-/Schließen-Funktion des Browsers beenden.
+                Bitte den Zurück-Button der übergeordneten Vereinsverwaltung verwenden. Die Reservierung ist hier in einem getrennten Fensterbereich eingebettet.
             </div>
             <button type="button" onclick="closeExitMessage()" style="padding:12px 20px;border-radius:10px;border:0;background:#b91c1c;color:white;font-weight:800;font-size:16px;">
                 Zurück zum Programm
@@ -2403,8 +2392,8 @@ catch(e){document.documentElement.classList.add('ecw-in-iframe')}
         </div>
     </div>
 
-    <button id="exitToStartButton" type="button" onclick="exitToStartPage()" aria-label="Zurück zur Startseite">
-        ↩️ Zurück zur Startseite
+    <button id="exitToStartButton" type="button" onclick="exitToStartPage()" aria-label="Zurück zur Vereinsverwaltung">
+        ↩️ Zurück zur Vereinsverwaltung
     </button>
 </body>
 </html>
