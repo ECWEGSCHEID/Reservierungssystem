@@ -733,7 +733,12 @@ html.ecw-reservation-admin-entry #exitToStartButton{display:block!important}
             renderClubhouseTemplatesUI();
             renderMembersTable();
             renderAdminStats();
-            renderSavedBookings();
+            if (new URLSearchParams(window.location.search).get('ansicht') === 'tag') {
+                document.getElementById('calendarDate').value = getTodayFormatted();
+                changeView('day');
+            } else {
+                renderSavedBookings();
+            }
 
             updateUserStatusUI();
 
