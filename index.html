@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EC Wegscheid Reservierungssystem</title>
+    <script>
+        const reservationView = new URLSearchParams(window.location.search).get('ansicht');
+        if (window.self === window.top && reservationView !== 'tag') {
+            window.location.replace('https://ecwegscheid.github.io/Vereinsverwaltung-Aktuell/smartphone-mitglieder.html?reservierungTest=1&namenTest=1&buchung=1');
+        }
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Firebase SDKs über CDN einbinden -->
